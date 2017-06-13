@@ -1,0 +1,57 @@
+---
+title: "Tutorials for longitudinal analysis of gene or protein expression data"
+author: "Ozan Aygun"
+date: "June 13, 2017"
+output:
+  html_document:
+    depth: 4
+    highlight: tango
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+
+```{r setup, include=FALSE, fig.align='center',fig.width=5,fig.height=4}
+knitr::opts_chunk$set(echo =TRUE, include = TRUE, message = FALSE,warning = FALSE,fig.align='center',fig.width=5,fig.height=4)
+```
+
+___
+
+# Introduction and Summary
+
+# Longitudinal analysis using timecourse package
+
+Here our interest is to analyze data that is obtained in the form of gene expression raios, to identify genes that are differentially expressed in a time-course, replicated experiment design that involves one or more biological conditions.
+
+**timecourse** package (deposited in bioconductor) provides a nice platform for handling these type of data. The workhorse functions are **mb.long()** and **mb.MANOVA()**. These functions calculate MB or T-squared statistics using **multivariate emprical Bayes approaches.**
+
+- The input is a matrix of gene (or protein) expression ratios that are properly preprocessed. log2 expression ratios are suitable.
+
+The statistical advantage of this approach (over the traditional F-statistic) is that:
+
+- it incorporates replicate variances
+- it accounts for the correlation among the gene expression measurements across the time-points
+- it also performs **moderation** that is, borrowing information across the the genes present in the analysis to shrink the standard error estimates towards a common value. This is especially useful in the analyses that involve small number of independent samples and helps to make robust inferences about the coefficients (i.e: increases the statistical power).
+
+## Longitudinal one-sample problem and its analysis
+
+The data set we are going to use here is the **fruitfly** data set that comes with the package:
+
+```{r}
+library(timecourse)
+data("fruitfly")
+head(fruitfly)
+```
+
+This data set is a matrix of log2 gene expression values for 2000 probesets from Drosophila. The experimental design consists of RNA isolated from fly embryos at 1h to 12h post laying the eggs.
+
+- microarray measuments
+- 3 biological replicates (A, B, C)
+- Each replicate set has 12 time points (01,02,..,12)
+
+Note that this is not a true longitudinal design, because there are not repeated measurements from the same individual, rather there are seperate embryos grown for each time point. However, since we can assume (or actually suspect) that the embryos that are used for the time course have very similar characteristics, we can model these results as longitudinal data. This could provide better inference relative to simply not accounting for any correlation between the time points and simply performing a factorial design.
+
+
