@@ -129,8 +129,24 @@ For this tutorial, I will use a dummy data set that contains log2 expression val
 
 The experimental design is:
 
+- There are WT and Mutant cells
+- There is one treatment
+- There are 3 time points for each treatment, for each cell line
+- We have 2 biological replicate (independent) measurements for each time point, , for each cell line
+
+Therefore, the true independent sample size for each gene, and each time point (assuming there are no missing values) is 2. This implies that we will need to perform moderation for the covariance matrix using the information across the genes in order to make more robust inferences.
+
+In this set up, the protein expression measurements within WT and Mut groups are correlated and we need to account for this correlation.
+
+Within LIMMA framework, this could be performed by using the Multi-level-model paradigm and introducing **random effects** for the units of repeated measurements.
+
+In this example, we will include random effects for WT or Mutant cells as they are the **units of correlation.** 
+
+We will start with reading and properly structuring the data, then fitting one-group, and two-group comparison models and interpreting the results.
 
 
+## Reading the data and annotation matrix
 
+In order to perform the 
 
 
