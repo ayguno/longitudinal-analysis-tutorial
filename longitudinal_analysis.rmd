@@ -131,7 +131,7 @@ The experimental design is:
 
 - There are WT and Mutant cells
 - There is one treatment
-- There are 3 time points for each treatment, for each cell line
+- There are 3 time points for each treatment (0h, 3h, 6h), for each cell line
 - We have 2 biological replicate (independent) measurements for each time point, , for each cell line
 
 Therefore, the true independent sample size for each gene, and each time point (assuming there are no missing values) is 2. This implies that we will need to perform moderation for the covariance matrix using the information across the genes in order to make more robust inferences.
@@ -147,6 +147,37 @@ We will start with reading and properly structuring the data, then fitting one-g
 
 ## Reading the data and annotation matrix
 
-In order to perform the 
+In order to perform the longitudinal analysis, we need to export a data matrix, along with an annotation matrix that matches the columns of this data matrix to the attibutes necessary to correctly fit the model.
+
+Read the data matrix:
+
+```{r}
+data.mat <- readRDS("log_expression.rds")
+head(data.mat)
+```
+
+Annotation table can be prepared in an R environment or externally using excel and then imported into the R session like I did here.
+
+Read and look at the structure of the table:
+
+```{r}
+annotations <- read.csv("annotations.csv", stringsAsFactors = TRUE)
+annotations
+```
+
+Note that the annotation matrix is composed of the foolowing columns:
+
+- **column.name:** explicitly matches the data columns to their attributes
+- **Subject:** the subject ID for the repeated measure unit. Note that we have 2 independent replicates for this experiment. Therefore, we have 2 independent subjects for each of the Wt and Mut groups. The correlation exists between the time-series measurements within these subjects, therefore we will include random effects for the subjects.
+- **Repeated.measure:** in this example, the repeated measure is the time points, 0,3 and 6h.
+- **Group:** signifies which experimental group the experiment belongs to.
+
+### One - group longitudinal analysis
+
+In this analysis we will just investigate the question: **which genes change significantly over the time in Wt cells? **
+
+We need to get the relevant part of the annotation matrix and experiment columns from the data matrix to pursue the analysis.
+
+
 
 
