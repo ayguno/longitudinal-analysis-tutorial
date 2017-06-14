@@ -118,6 +118,18 @@ plotProfile(out1)
 
 This is an example of how timeseries package can be used to determine the genes of interest that change over time for a given group. Note that timeseries package just provides statistics and ranks the genes. It does NOT however, perform any hypothesis testing, therefore does NOT provide p-values. While this is not a big problem, often researchers are interested in getting a threshold to shortlist the genes that are significantly changed over the time. Therefore, we continue learning additional approaches that handle longitudinal data analysis for gene expression sets.
 
+# Longitudinal analysis using LIMMA package and duplicateCorrelation() function
+
+In this example we will have 2 problems to work with:
+
+1. One - group longitudinal analysis to find the genes that are changing over the time
+2. Two - group longitudinal analysis to find the genes that are changing over the time and between the groups
+
+For this tutorial, I will use a dummy data set that contains log2 expression values we obtained from 12 experiments. 
+
+The experimental design is:
+
+
 
 
 
