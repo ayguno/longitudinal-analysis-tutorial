@@ -52,6 +52,73 @@ This data set is a matrix of log2 gene expression values for 2000 probesets from
 - 3 biological replicates (A, B, C)
 - Each replicate set has 12 time points (01,02,..,12)
 
+Let's look at the distribution of individual experiments:
+
+```{r, fig.height=6}
+color.map <- colorRampPalette(c("blue", "red", "green"))(36)
+plot(density(fruitfly[,1]), type = "l", col = color.map[1], ylim = c(0,0.25),
+     main = "Distribution of expression ratios", xlab = "log2 expression")
+for(i in 2:ncol(fruitfly)) lines(density(fruitfly[,i]), col = color.map[i])
+```
+
+We realize that the data is not scaled or centered, but has reasonably normal distribution for all experiments. Their medians and means are also quite similar. This could have important consequences if the data was not preprocessed properly.
+
 Note that this is not a true longitudinal design, because there are not repeated measurements from the same individual, rather there are seperate embryos grown for each time point. However, since we can assume (or actually suspect) that the embryos that are used for the time course have very similar characteristics, we can model these results as longitudinal data. This could provide better inference relative to simply not accounting for any correlation between the time points and simply performing a factorial design.
+
+## Question: which genes significantly change over time?
+
+We are trying to answer this simple question in this one-sample scenario. 
+
+### Define and assign the time point and group information for each experiment
+
+Here what we refer as experiment is simply one data column. The function **mb.long()** assumes that the data (expression) matrix is arranged in the following order:
+
+- **Biological Conditions (Groups) -> Replicates -> Time points**
+
+For the current problem, since we have just one group (e.g: Wild-type Drosophila embryos), the function will assume that the columns are arranged in the order of:
+
+- **Replicates -> Time points**
+
+Let's see what this means:
+
+- If 3 replicates we have are labelled as: (A, B, C)
+- If each time point is labelled as: (01,02,..,12)
+
+Then, the column order that is required for the **mb.long()** function is:
+
+**A01,A02,...,A12,B01,B02,...,B12,C01,C02,...,C12**
+
+This is quite intuitive. 
+
+In this example, we are lucky and don't need to perform any column shuffling. The default order in this example data set is in this desired order:
+
+```{r}
+colnames(fruitfly)
+```
+
+
+### Use mb.long() to calculate MB and T-squared statictics
+
+Note that: 
+
+- **times**:the number of time points and 
+- **reps**:  A numeric vector or matrix corresponding to the sample sizes for all genes across different biological conditions
+
+are always required as input arguments.
+
+- **method**: defaults to "1D": for the one-sample case where genes of interest are those which change over time. 
+
+```{r,fig.width=8, fig.height=6}
+size <- rep(3,2000) # we have 3 replicates each have 2000 data points (i.e: genes)
+# times will be set to 12 (the number of time points for each replicate)
+
+out1 <- mb.long(fruitfly, times = 12, reps = size)
+plotProfile(out1)
+```
+
+This is an example of how timeseries package can be used to determine the genes of interest that change over time for a given group. Note that timeseries package just provides statistics and ranks the genes. It does NOT however, perform any hypothesis testing, therefore does NOT provide p-values. While this is not a big problem, often researchers are interested in getting a threshold to shortlist the genes that are significantly changed over the time. Therefore, we continue learning additional approaches that handle longitudinal data analysis for gene expression sets.
+
+
+
 
 
