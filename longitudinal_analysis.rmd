@@ -180,7 +180,7 @@ We need to get the relevant part of the annotation matrix and experiment columns
 
 
 ```{r}
-
+annotations.wt <- annotations[annotations$Group == "Wt",]
 ```
 
 
