@@ -174,10 +174,13 @@ Note that the annotation matrix is composed of the foolowing columns:
 
 ### One - group longitudinal analysis
 
-In this analysis we will just investigate the question: **which genes change significantly over the time in Wt cells? **
+In this analysis we will just investigate the question: **which genes change significantly over the time in Wt cells?**
 
 We need to get the relevant part of the annotation matrix and experiment columns from the data matrix to pursue the analysis.
 
 
+```{r}
+
+```
 
 
