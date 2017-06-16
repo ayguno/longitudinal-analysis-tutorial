@@ -236,6 +236,7 @@ This function minimally requires the following arguments:
 The correlation is estimated by fitting a mixed linear model by REML individually for each gene. 
 
 ```{r}
+library(limma)
 corfit <- duplicateCorrelation(data.mat.wt,design = design, block = annotations.wt$Subject)
 ```
 
@@ -253,3 +254,10 @@ Then, this inter-subject correlation is input into the linear model fit:
 ```{r}
 fit <- lmFit(data.mat.wt, design = design, block = annotations.wt$Subject, correlation = corfit$consensus.correlation)
 ```
+
+### Prepare the contrasts of interest: compare to baseline measurement level
+
+
+
+
+### Prepare the contrasts of interest: compare each measure to the previous measure
