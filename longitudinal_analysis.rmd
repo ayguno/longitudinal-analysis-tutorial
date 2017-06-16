@@ -125,7 +125,7 @@ In this example we will have 2 problems to work with:
 1. One - group longitudinal analysis to find the genes that are changing over the time
 2. Two - group longitudinal analysis to find the genes that are changing over the time and between the groups
 
-For this tutorial, I will use a dummy data set that contains log2 expression values we obtained from 12 experiments. 
+For this tutorial, I will use an example data set that contains log2 expression values we obtained from 12 experiments. The expression measurements are in the form of log2 ratios, which are relative to a common reference denominator. Individual experiments are centered at zero using median normalization.
 
 The experimental design is:
 
@@ -140,7 +140,7 @@ In this set up, the protein expression measurements within WT and Mut groups are
 
 Within LIMMA framework, this could be performed by using the Multi-level-model paradigm and introducing **random effects** for the units of repeated measurements.
 
-In this example, we will include random effects for WT or Mutant cells as they are the **units of correlation.** 
+In this example, we will include random effects for WT or Mutant cells (i.e: the **subject** level) as they are the **units of correlation.** 
 
 We will start with reading and properly structuring the data, then fitting one-group, and two-group comparison models and interpreting the results.
 
@@ -165,22 +165,91 @@ annotations <- read.csv("annotations.csv", stringsAsFactors = TRUE)
 annotations
 ```
 
-Note that the annotation matrix is composed of the foolowing columns:
+Note that the annotation matrix is composed of the following columns:
 
 - **column.name:** explicitly matches the data columns to their attributes
 - **Subject:** the subject ID for the repeated measure unit. Note that we have 2 independent replicates for this experiment. Therefore, we have 2 independent subjects for each of the Wt and Mut groups. The correlation exists between the time-series measurements within these subjects, therefore we will include random effects for the subjects.
 - **Repeated.measure:** in this example, the repeated measure is the time points, 0,3 and 6h.
 - **Group:** signifies which experimental group the experiment belongs to.
 
-### One - group longitudinal analysis
+## One-group longitudinal analysis
 
 In this analysis we will just investigate the question: **which genes change significantly over the time in Wt cells?**
 
 We need to get the relevant part of the annotation matrix and experiment columns from the data matrix to pursue the analysis.
 
+```{r}
+
+
+annotations.wt <- annotations[annotations$Group == "Wt",]
+annotations.wt
+
+data.mat.wt <- data.mat[,which(colnames(data.mat) == annotations.wt$Column.Name)]
+```
+
+We therefore have 2 Subjects (independent biological replicates), 3 time-points (repeated measures) of gene expression measurements.
+
+###Combine repeated measure and group levels
+
+At this stage, it is convenient to combine the repeated measure levels and group levels:
 
 ```{r}
-annotations.wt <- annotations[annotations$Group == "Wt",]
+measure.levels <- paste(annotations.wt[,"Group"], annotations.wt[,'Repeated.measure'], sep='.')
+measure.levels
+```
+
+### Prepare the design matrix
+
+The design matrix for lmFit is prepared using the measure.levels we generated. Note the way we set up the levels for the measure levels, such that the reference level (in this case the zero time point) is the first and comparison measurement levels follow:
+
+```{r}
+f <- factor(measure.levels, levels = c("Wt.0","Wt.3","Wt.6"))
+design <- model.matrix(~0 + f)
+colnames(design) <- levels(f)
+design
+```
+
+Note that for each independent experiment represents a parameter is for a given repeated measure level. The design matrix is most similar to the one-way multiple group comparisons we performed in limma, but in this case we are dealing with repeated measures data.
+
+Recall that the order of the rows of the design matrix should match the columns of the data:
+
+```{r}
+names(data.mat.wt);annotations.wt$Column.Name
+row.names(design) <- colnames(data.mat.wt)
+design
+```
+
+The design matrix is now more intuitive.
+
+### Using duplicateCorrelation() to estimate the correlation between the subjects
+
+The purpose of this step is the account for the correlation between the gene expression measurements made on the same **Subject**. We will use the **duplicateCorrelation()** function:
+
+This function minimally requires the following arguments:
+
+- **object**: the data matrix that contains the repeated gene expression measurements for the Wt group
+- **design**: the design matrix we prepared above, where rows corresponding to data object columns (experiments) and columns correspond to comparisons to be estimated. 
+- **block**: vector or factor specifying a blocking variable. In other words, this is the **Subject** variable from the annotation matrix that contains the vector of subjects. In LIMMA, this is referred to as **blocking variable**. The blocking variable contains repeated observations that are correlated. Typically the blocks are biological replicates and the repeated observations are technical replicates. In our case, the repeated observations are the **time points.** 
+
+**How are the correlations estimated?**
+
+The correlation is estimated by fitting a mixed linear model by REML individually for each gene. 
+
+```{r}
+corfit <- duplicateCorrelation(data.mat.wt,design = design, block = annotations.wt$Subject)
 ```
 
 
+### Using consensus correlation to fit the model by lmFit()
+
+The duplicateCorrelation() function returns a **consensus correlation**, which is **a robust average of the individual correlations**, which can be used as input for functions lmFit or gls.series.
+
+```{r}
+corfit$consensus.correlation
+```
+
+Then, this inter-subject correlation is input into the linear model fit:
+
+```{r}
+fit <- lmFit(data.mat.wt, design = design, block = annotations.wt$Subject, correlation = corfit$consensus.correlation)
+```
