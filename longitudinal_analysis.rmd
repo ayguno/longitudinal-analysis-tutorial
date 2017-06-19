@@ -359,4 +359,21 @@ gene.fit <- gene.fit[order(gene.fit$F.p.value),]
 gene.fit.TopN <- gene.fit[1:10,]
 ```
 
+Finally we get the data in long format for the topN most significant genes:
 
+```{r}
+data.m <- merge(data.mat.wt.long.mannt, gene.fit.TopN)
+data.m$Subject <- factor(data.m$Subject)
+```
+
+then, we can plot the profiles:
+
+```{r, fig.height= 12}
+library(ggplot2)
+
+ggplot (aes (x=Repeated.measure, y=measurement, group=Subject, color=Subject), data=data.m) + 
+      geom_point() + geom_line() + facet_grid(id ~ .) + theme_bw() 
+ 
+# Save the plot as pdf
+ ggsave (paste ('limma-top', N, '.pdf', sep=''), width=4, height=1*N, pointsize=8)
+```
