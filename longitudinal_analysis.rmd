@@ -260,4 +260,5 @@ fit <- lmFit(data.mat.wt, design = design, block = annotations.wt$Subject, corre
 
 
 
+
 ### Prepare the contrasts of interest: compare each measure to the previous measure
