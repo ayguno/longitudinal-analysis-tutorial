@@ -316,4 +316,47 @@ Note that the inferences that are made relative to previous measure or to the ba
 
 ### Overall model inference (F-based p-value)
 
-Often, the question of interest is whether a given gene display significant change over time 
+Often, the question of interest is whether a given gene display significant change over time, regardless of when the change happened. This question relates to the inference made about the overall model and can be extracted from the **$F.p.value** slot of the fitted model object.
+
+```{r}
+plot(fit.baseline$F.p.value,fit.previous$F.p.value,col = alpha("navy",0.1), pch = 20)
+```
+
+Note that regardless of the contrasts we fitted, the overall model p-value is the same.
+
+However, note that these F.p.values are not adjusted for multiple testing and we need to correct for that:
+
+```{r}
+adj.p.val <- p.adjust(fit.baseline$F.p.value, method = "fdr")
+sum(adj.p.val < 0.05)
+```
+
+Note that in this case none of the genes display an overall significant change across the time of repeated measurements.
+
+### Plot the N most significant genes that display change over time
+
+We can derive different sets of time-series plots. The most generic ones would be ranking the genes based on their F.p.values and plotting a handful of most significant ones.
+
+First of all, we need to get the data into long format and match the relevant annotations:
+
+```{r}
+library(reshape)
+data.mat.wt$id <- row.names(data.mat.wt)
+data.mat.wt.long <- melt(data.mat.wt, id = "id") # melt the data, keep id columns as the id
+colnames (data.mat.wt.long) <- c('id', 'Column.Name', 'measurement')
+# Merge the long data with the experiment annotations, match each column name with its attributes
+data.mat.wt.long.mannt <- merge(data.mat.wt.long, annotations.wt, by = "Column.Name") 
+
+```
+
+We then extract the topN genes of interest:
+
+```{r}
+N = 10 # let's say we are intrested in the 10 most sifnificant genes
+
+gene.fit <- cbind.data.frame(id = data.mat.wt$id, F.p.value = fit.baseline$F.p.value, adj.p.val)
+gene.fit <- gene.fit[order(gene.fit$F.p.value),]
+gene.fit.TopN <- gene.fit[1:10,]
+```
+
+
