@@ -223,17 +223,17 @@ The design matrix is now more intuitive.
 
 ### Using duplicateCorrelation() to estimate the correlation between the subjects
 
-The purpose of this step is the account for the correlation between the gene expression measurements made on the same **Subject**. We will use the **duplicateCorrelation()** function:
+The purpose of this step is to account for the correlation between the gene expression measurements made on the same **Subject**. We will use the **duplicateCorrelation()** function:
 
 This function minimally requires the following arguments:
 
 - **object**: the data matrix that contains the repeated gene expression measurements for the Wt group
 - **design**: the design matrix we prepared above, where rows corresponding to data object columns (experiments) and columns correspond to comparisons to be estimated. 
-- **block**: vector or factor specifying a blocking variable. In other words, this is the **Subject** variable from the annotation matrix that contains the vector of subjects. In LIMMA, this is referred to as **blocking variable**. The blocking variable contains repeated observations that are correlated. Typically the blocks are biological replicates and the repeated observations are technical replicates. In our case, the repeated observations are the **time points.** 
+- **block**: vector or factor specifying a blocking variable. In other words, this is the **Subject** variable from the annotation matrix that contains the vector of subjects. In LIMMA, this is referred to as **blocking variable**. The blocking variable contains repeated observations that are correlated. Typically the blocks are biological replicates and the repeated observations are technical replicates that are correlated within a block. In our case, the repeated observations are the **time points.** 
 
 **How are the correlations estimated?**
 
-The correlation is estimated by fitting a mixed linear model by REML individually for each gene. 
+The correlation is estimated by **fitting a mixed linear model by REML individually for each gene**. 
 
 ```{r}
 library(limma)
@@ -255,8 +255,19 @@ Then, this inter-subject correlation is input into the linear model fit:
 fit <- lmFit(data.mat.wt, design = design, block = annotations.wt$Subject, correlation = corfit$consensus.correlation)
 ```
 
+We now have the model fit accouting for the correlation between the repeated measures. The next step would be preparing the relevant contrasts to answer our question.
+
 ### Prepare the contrasts of interest: compare to baseline measurement level
 
+In this case our contrasts are designed so that we are testing the significance of changes at each time point relative to the baseline measurement:
+
+```{r}
+contr.baseline <- makeContrasts(
+        Wt_3vs0 = Wt.3 - Wt.0,
+        Wt_6vs0 = Wt.6 - Wt.0,
+        levels = design)
+
+```
 
 
 
