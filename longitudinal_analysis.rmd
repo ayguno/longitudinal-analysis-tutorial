@@ -266,10 +266,17 @@ contr.baseline <- makeContrasts(
         Wt_3vs0 = Wt.3 - Wt.0,
         Wt_6vs0 = Wt.6 - Wt.0,
         levels = design)
-
+contr.baseline # This is the contrast matrix for baseline comparisons
 ```
 
-
-
-
 ### Prepare the contrasts of interest: compare each measure to the previous measure
+
+This could be another set of comparisons of interest and we can easily prepare them:
+
+```{r}
+contr.previous <- makeContrasts(
+        Wt_3vs0 = Wt.3 - Wt.0,
+        Wt_6vs3 = Wt.6 - Wt.3,
+        levels = design)
+contr.baseline # This is the contrast matrix for baseline comparisons
+```
