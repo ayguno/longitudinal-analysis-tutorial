@@ -189,7 +189,7 @@ data.mat.wt <- data.mat[,which(colnames(data.mat) == annotations.wt$Column.Name)
 
 We therefore have 2 Subjects (independent biological replicates), 3 time-points (repeated measures) of gene expression measurements.
 
-###Combine repeated measure and group levels
+### Combine repeated measure and group levels
 
 At this stage, it is convenient to combine the repeated measure levels and group levels:
 
@@ -278,5 +278,42 @@ contr.previous <- makeContrasts(
         Wt_3vs0 = Wt.3 - Wt.0,
         Wt_6vs3 = Wt.6 - Wt.3,
         levels = design)
-contr.baseline # This is the contrast matrix for baseline comparisons
+contr.previous # This is the contrast matrix for baseline comparisons
 ```
+
+### Compute the contrasts
+
+This is performed with contrasts.fit(): 
+
+```{r}
+fit.previous <- contrasts.fit(fit, contrasts = contr.previous)
+fit.baseline <- contrasts.fit(fit, contrasts = contr.baseline)
+```
+
+### Perform emprical Bayes moderation
+
+We perform the moderation by using the eBayes() function:
+
+```{r}
+fit.previous <- eBayes(fit.previous)
+fit.baseline <- eBayes(fit.baseline)
+```
+
+### Get the results for individual contrasts
+
+Fpr a given contrast,it is possible to extract coefficients (estimates) and p-values (inferences) using the topTable() function:
+
+```{r}
+results.previous <- topTable(fit.previous, coef = 2, number = nrow(data.mat.wt),adjust.method = "fdr", sort.by = "none")
+results.baseline <- topTable(fit.baseline, coef = 2, number = nrow(data.mat.wt),adjust.method = "fdr", sort.by = "none")
+
+library(scales)
+plot(results.baseline$P.Value,results.previous$P.Value, col = alpha("navy",0.2), pch = 20)
+
+```
+
+Note that the inferences that are made relative to previous measure or to the base line could be very different for a given gene.
+
+### Overall model inference (F-based p-value)
+
+Often, the question of interest is whether a given gene display significant change over time 
