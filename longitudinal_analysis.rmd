@@ -422,3 +422,78 @@ design.two.group
 ```{r}
 corfit.two.group <- duplicateCorrelation(data.mat,design = design.two.group, block = annotations$Subject)
 ```
+
+### Using consensus correlation to fit the model by lmFit()
+
+```{r}
+fit.two.group <- lmFit(data.mat,design = design.two.group,correlation = corfit.two.group$consensus.correlation,block = annotations$Subject)
+```
+
+### Prepare the contrasts of interest: compare each measure to the previous measure
+
+Note that in this case our model contains two contrasts to be evaluated:
+
+```{r}
+contr.previous.two.group <- makeContrasts(
+        Dif.3h = (Mut.3 - Mut.0) - (Wt.3 - Wt.0),
+        Dif.6h = (Mut.6 - Mut.3) - (Wt.6 - Wt.3),
+levels = design.two.group)
+contr.previous.two.group
+```
+
+### Compute the contrasts
+
+```{r}
+fit.previous.two.group <- contrasts.fit(fit.two.group,contrasts = contr.previous.two.group)
+```
+
+### Perform emprical Bayes moderation
+
+```{r}
+fit.previous.two.group <- eBayes(fit.previous.two.group)
+```
+
+### Get the results for individual contrasts
+
+Note that in this case again F-based statistic is the interest, which is a measure of very general differences between the treatment and control curves.
+
+```{r}
+results.previous.two.group <- topTableF(fit.previous.two.group,sort.by = "none", number = nrow(data.mat), adjust.method = "fdr")
+head(results.previous.two.group)
+```
+
+### Plot the N most significant genes that display change over time
+
+We can modify our plotting script to adapt the two-group comparisons:
+
+```{r, fig.height=12, fig.width=8}
+library(reshape)
+data.mat$id <- row.names(data.mat)
+data.mat.long <- melt(data.mat, id = "id") # melt the data, keep id columns as the id
+colnames (data.mat.long) <- c('id', 'Column.Name', 'measurement')
+# Merge the long data with the experiment annotations, match each column name with its attributes
+data.mat.long <- merge(data.mat.long, annotations, by = "Column.Name") 
+
+# We then extract the topN genes of interest:
+
+N = 10 # let's say we are intrested in the 10 most sifnificant genes
+
+gene.fit <- cbind.data.frame(id = data.mat$id, F.p.value = fit.previous.two.group$F.p.value, adj.p.val = p.adjust(fit.previous.two.group$F.p.value))
+gene.fit <- gene.fit[order(gene.fit$F.p.value),]
+gene.fit.TopN <- gene.fit[1:N,]
+
+# Finally we get the data in long format for the topN most significant genes:
+
+data.m <- merge(data.mat.long, gene.fit.TopN)
+data.m$Subject <- factor(data.m$Subject)
+
+# then, we can plot the profiles: note we change the grid to plot the profile of each gene in two groups side-by-side:
+
+ggplot (aes (x=Repeated.measure, y=measurement, group=Subject, color=Subject), data=data.m) + 
+      geom_point() + geom_line() + facet_grid(id ~ Group) + theme_bw()
+
+# Save the plot as pdf
+ ggsave (paste ('limma-top-two-group', N, '.pdf', sep=''), width=4, height=1*N, pointsize=8)
+```
+
+This completes the two-group longitudinal analysis for the gene expression data.
