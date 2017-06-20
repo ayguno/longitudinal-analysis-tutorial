@@ -400,17 +400,25 @@ We have 2 groups that have all the repeated measures. Each repeated measure is b
 
 Our approach will be very similar to a one-group analysis, except when we set our contrasts.
 
-### Combine repeated measure and group labels:
+### Combine repeated measure and group labels
 
 ```{r}
 measure.levels.two.group <- paste(annotations$Group,annotations$Repeated.measure, sep = ".")
 measure.levels.two.group
 ```
 
-### Prepare the design matrix:
+### Prepare the design matrix
 
 ```{r}
-f.two.group <- factor(measure.levels.two.group, levels = c( "Wt.0" , "Wt.0" , "Wt.3",  "Wt.3",  "Wt.6" , "Wt.6"  ,"Mut.0", "Mut.0" ,"Mut.3" ,"Mut.3", "Mut.6", "Mut.6"))
+f.two.group <- factor(measure.levels.two.group, levels = c( "Wt.0" , "Wt.3",   "Wt.6"  ,"Mut.0" ,"Mut.3", "Mut.6"))
 design.two.group <- model.matrix(~0 + f.two.group)
+colnames(design.two.group) <- levels(f.two.group)
+row.names(design.two.group) <- annotations$Column.Name
 design.two.group
+```
+
+### Use duplicateCorrelation()to estimate the correlation between the subjects
+
+```{r}
+corfit.two.group <- duplicateCorrelation(data.mat,design = design.two.group, block = annotations$Subject)
 ```
