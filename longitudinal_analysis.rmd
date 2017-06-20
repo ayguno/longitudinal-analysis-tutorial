@@ -386,3 +386,31 @@ This completes the one-group analysis on the longitudinal gene expression data.
 
 Setting up the two-group analysis is very similar to the one-group one, and again depending on the question, contrasts need to be carefully defined. If the question of interest relates to the repeated.measure x group interaction, the relevant interaction term needs to be fitted in the form of contrasts, and p-value associated with that contrast needs to be used for the inference.
 
+We will focus on the same data set, but this time we are interested in the following question: **which genes respond DIFFERENTLY over time in the mutant compared to wild-type?**
+
+This is a question that relates to **difference of differences**, therefore can be reduced to interaction term.
+
+Recall our annotation table:
+
+```{r}
+knitr::kable(annotations, align = "c", format = "pandoc")
+```
+
+We have 2 groups that have all the repeated measures. Each repeated measure is blocked by 2 independent biological replicates, or subjects.
+
+Our approach will be very similar to a one-group analysis, except when we set our contrasts.
+
+### Combine repeated measure and group labels:
+
+```{r}
+measure.levels.two.group <- paste(annotations$Group,annotations$Repeated.measure, sep = ".")
+measure.levels.two.group
+```
+
+### Prepare the design matrix:
+
+```{r}
+f.two.group <- factor(measure.levels.two.group, levels = c( "Wt.0" , "Wt.0" , "Wt.3",  "Wt.3",  "Wt.6" , "Wt.6"  ,"Mut.0", "Mut.0" ,"Mut.3" ,"Mut.3", "Mut.6", "Mut.6"))
+design.two.group <- model.matrix(~0 + f.two.group)
+design.two.group
+```
