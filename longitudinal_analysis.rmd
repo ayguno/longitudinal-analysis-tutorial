@@ -316,7 +316,7 @@ Note that the inferences that are made relative to previous measure or to the ba
 
 ### Overall model inference (F-based p-value)
 
-Often, the question of interest is whether a given gene display significant change over time, regardless of when the change happened. This question relates to the inference made about the overall model and can be extracted from the **$F.p.value** slot of the fitted model object.
+Often the question of interest is **whether a given gene display significant change over time**, regardless of when the change happened. This question relates to the inference made about the overall model and can be extracted from the **$F.p.value** slot of the fitted model object.
 
 ```{r}
 plot(fit.baseline$F.p.value,fit.previous$F.p.value,col = alpha("navy",0.1), pch = 20)
@@ -377,3 +377,12 @@ ggplot (aes (x=Repeated.measure, y=measurement, group=Subject, color=Subject), d
 # Save the plot as pdf
  ggsave (paste ('limma-top', N, '.pdf', sep=''), width=4, height=1*N, pointsize=8)
 ```
+
+This completes the one-group analysis on the longitudinal gene expression data.
+
+
+## Two-group longitudinal analysis
+
+
+Setting up the two-group analysis is very similar to the one-group one, and again depending on the question, contrasts need to be carefully defined. If the question of interest relates to the repeated.measure x group interaction, the relevant interaction term needs to be fitted in the form of contrasts, and p-value associated with that contrast needs to be used for the inference.
+
